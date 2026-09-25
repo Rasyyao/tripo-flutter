@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:tripo/models/onboarding_item.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tripo/blocs/auth/auth_bloc.dart';
+import 'package:tripo/repositories/auth_repository.dart';
 import 'package:tripo/screens/onboarding_screen.dart';
 
 void main() {
@@ -11,10 +13,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tripo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: OnboardingScreen(),
+    return BlocProvider(
+      create: (_) => AuthBloc(FakeAuthRepository()),
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: OnboardingScreen(),
+      ),
     );
   }
 }
