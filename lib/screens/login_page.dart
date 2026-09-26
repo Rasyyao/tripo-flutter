@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:tripo/screens/auth_form/login_form.dart';
 import 'package:tripo/screens/auth_form/signup_form.dart';
 import 'package:tripo/theme/app_colors.dart';
 
@@ -51,7 +52,23 @@ class _LoginPageState extends State<LoginPage> {
                     onChanged: (value) => setState(() => isLogin = value),
                   ),
                   const SizedBox(height: 24),
-                  isLogin ? const Text("Login form") : const SignUpForm(),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 350),
+                    transitionBuilder: (child, animation) {
+                      final offset = Tween<Offset>(
+                        begin: const Offset(0.08, 0),
+                        end: Offset.zero,
+                      ).animate(animation);
+
+                      return FadeTransition(
+                        opacity: animation,
+                        child: SlideTransition(position: offset, child: child),
+                      );
+                    },
+                    child: isLogin
+                        ? const LoginForm(key: ValueKey('login'))
+                        : const SignUpForm(key: ValueKey('signup')),
+                  ),
                 ],
               ),
             ),
