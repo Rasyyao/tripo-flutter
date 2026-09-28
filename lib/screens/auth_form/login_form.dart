@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tripo/blocs/auth/auth_bloc.dart';
 import 'package:tripo/core/validators.dart';
+import 'package:tripo/screens/auth_form/forgot_password.dart';
 import 'package:tripo/theme/app_colors.dart';
 import 'package:tripo/widgets/app_text_field.dart';
-import 'package:tripo/widgets/password_requirments.dart';
 import 'package:tripo/widgets/primary_button.dart';
 
 class LoginForm extends StatefulWidget {
-  const new({super.key});
+  const LoginForm({super.key});
 
   @override
   State<LoginForm> createState() => _LoginFormState();
@@ -24,6 +24,7 @@ class _LoginFormState extends State<LoginForm> {
   void dispose() {
     _email.dispose();
     _password.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -37,9 +38,9 @@ class _LoginFormState extends State<LoginForm> {
     FocusScope.of(context).unfocus();
     if (!_formKey.currentState!.validate()) return;
 
-    // context.read<AuthBloc>().add(
-    //   // SignUpSubmitted(email: _email.text.trim(), password: _password.text),
-    // );
+    context.read<AuthBloc>().add(
+      LoginSubmitted(email: _email.text.trim(), password: _password.text),
+    );
   }
 
   @override
@@ -73,29 +74,46 @@ class _LoginFormState extends State<LoginForm> {
             const SizedBox(height: 20),
 
             // Password: local validation only
-            AppTextField(
-              label: 'Password',
-              controller: _password,
-              focusNode: _passwordFocus,
-              isPassword: true,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.newPassword],
-              validator: Validators.compose([
-                Validators.required('Password is required'),
-                Validators.password(),
-              ]),
+            BlocBuilder<AuthBloc, AuthState>(
+              buildWhen: (p, c) => p.passwordError != c.passwordError,
+              builder: (context, state) => AppTextField(
+                label: 'Password',
+                controller: _password,
+                focusNode: _passwordFocus,
+                isPassword: true,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                errorText: state.passwordError,
+                onChanged: (_) {
+                  if (state.passwordError != null) {
+                    context.read<AuthBloc>().add(AuthErrorsCleared());
+                  }
+                },
+                validator: Validators.compose([
+                  Validators.required('Password is required'),
+                  Validators.password(),
+                ]),
+                onSubmitted: (_) => _submit(),
+              ),
             ),
             const SizedBox(height: 12),
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        ForgotPassword(initialEmail: _email.text.trim()),
+                  ),
+                );
+              },
               child: SizedBox(
                 width: MediaQuery.of(context).size.width,
-                child: Text(
+                child: const Text(
                   "Forgot Password",
                   textAlign: TextAlign.end,
                   style: TextStyle(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
               ),
@@ -105,7 +123,7 @@ class _LoginFormState extends State<LoginForm> {
             BlocBuilder<AuthBloc, AuthState>(
               buildWhen: (p, c) => p.isLoading != c.isLoading,
               builder: (context, state) => PrimaryButton(
-                label: 'Sign Up',
+                label: 'Log In',
                 isLoading: state.isLoading,
                 onPressed: _submit,
               ),
